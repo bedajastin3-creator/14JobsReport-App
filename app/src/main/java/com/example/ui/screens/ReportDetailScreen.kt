@@ -2,7 +2,6 @@ package com.example.ui.screens
 
 import android.content.Intent
 import com.example.ads.NativeAdCard
-import com.example.data.resolveApplicationUrl
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -584,14 +583,6 @@ fun ReportDetailScreen(viewModel: AppViewModel) {
                         job = job,
                         onClick = {
                             viewModel.selectJob(job)
-                        },
-                        onApplyClick = {
-                            val applyUrl = job.resolveApplicationUrl()
-                            try {
-                                uriHandler.openUri(applyUrl)
-                            } catch (_: Exception) {
-                                viewModel.selectJob(job)
-                            }
                         }
                     )
                 }
@@ -758,8 +749,7 @@ private fun StatCard(
 @Composable
 private fun JobPlacementCard(
     job: JobOpportunity,
-    onClick: () -> Unit,
-    onApplyClick: () -> Unit
+    onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -835,12 +825,11 @@ private fun JobPlacementCard(
                 }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (!job.salary.isNullOrBlank()) {
+            if (!job.salary.isNullOrBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
                         text = job.salary,
                         color = EmeraldGreen,
@@ -848,34 +837,6 @@ private fun JobPlacementCard(
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.Monospace
                     )
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
-                }
-
-                Button(
-                    onClick = onApplyClick,
-                    colors = ButtonDefaults.buttonColors(containerColor = LightBlue),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.height(28.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "CAREERS PORTAL",
-                            color = Color.Black,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = FontFamily.Monospace
-                        )
-                        Icon(
-                            imageVector = Icons.Default.ArrowOutward,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(10.dp)
-                        )
-                    }
                 }
             }
         }

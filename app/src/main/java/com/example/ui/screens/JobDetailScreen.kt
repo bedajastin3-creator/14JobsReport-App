@@ -36,6 +36,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.filled.Launch
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ChevronLeft
@@ -222,6 +224,29 @@ fun JobDetailScreen(viewModel: AppViewModel) {
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
+
+                val isSaved = viewModel.isJobSaved(job.id)
+
+                IconButton(
+                    onClick = {
+                        val nowSaved = viewModel.toggleSaveJob(job)
+                        Toast.makeText(
+                            context,
+                            if (nowSaved) "Job saved to your Saved Jobs list" else "Job removed from Saved Jobs",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = if (isSaved) "Remove from Saved" else "Save Job",
+                        tint = if (isSaved) AmberYellow else TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(4.dp))
 
                 IconButton(
                     onClick = {
@@ -592,6 +617,48 @@ fun JobDetailScreen(viewModel: AppViewModel) {
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+
+                    // Secondary Action: Save / Bookmark Job
+                    val isJobCurrentlySaved = viewModel.isJobSaved(job.id)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (isJobCurrentlySaved) AmberYellow.copy(alpha = 0.15f) else BgDeep)
+                            .border(
+                                1.dp,
+                                if (isJobCurrentlySaved) AmberYellow.copy(alpha = 0.4f) else BorderWhite10,
+                                RoundedCornerShape(14.dp)
+                            )
+                            .clickable {
+                                val nowSaved = viewModel.toggleSaveJob(job)
+                                Toast.makeText(
+                                    context,
+                                    if (nowSaved) "Job saved to your Saved Jobs list" else "Job removed from Saved Jobs",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            .padding(14.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = if (isJobCurrentlySaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                contentDescription = if (isJobCurrentlySaved) "Saved" else "Save Job",
+                                tint = if (isJobCurrentlySaved) AmberYellow else TextPrimary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = if (isJobCurrentlySaved) "★ SAVED IN YOUR SAVED JOBS LIST" else "SAVE JOB FOR LATER",
+                                color = if (isJobCurrentlySaved) AmberYellow else TextPrimary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace,
+                                letterSpacing = 0.5.sp
                             )
                         }
                     }

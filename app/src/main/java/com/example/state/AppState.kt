@@ -31,6 +31,7 @@ import kotlinx.coroutines.withContext
 enum class NavRoute(val title: String, val routePath: String) {
     INTELLIGENCE_FEED("Intelligence Feed", "/"),
     ALL_JOBS("All Jobs List", "/jobs"),
+    SAVED_JOBS("Saved Jobs", "/saved-jobs"),
     COMPANIES("Companies", "/companies"),
     REGIONS("Regions", "/regions"),
     JOB_REPORTS("All Job Reports", "/reports"),
@@ -234,7 +235,48 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Saved Jobs state
+    val savedJobIds = mutableStateListOf<String>()
+    val savedJobsCustomList = mutableStateListOf<JobOpportunity>()
+
+    val savedJobs: List<JobOpportunity>
+        get() {
+            val fromActive = activeJobs.filter { savedJobIds.contains(it.id) }
+            val extra = savedJobsCustomList.filter { custom ->
+                savedJobIds.contains(custom.id) && fromActive.none { it.id == custom.id }
+            }
+            return fromActive + extra
+        }
+
+    fun isJobSaved(jobId: String): Boolean {
+        return savedJobIds.contains(jobId)
+    }
+
+    fun toggleSaveJob(job: JobOpportunity): Boolean {
+        val isNowSaved = if (savedJobIds.contains(job.id)) {
+            savedJobIds.remove(job.id)
+            savedJobsCustomList.removeAll { it.id == job.id }
+            false
+        } else {
+            savedJobIds.add(job.id)
+            if (savedJobsCustomList.none { it.id == job.id }) {
+                savedJobsCustomList.add(job)
+            }
+            true
+        }
+        prefs.edit().putStringSet("saved_job_ids", savedJobIds.toSet()).apply()
+        return isNowSaved
+    }
+
+    fun clearAllSavedJobs() {
+        savedJobIds.clear()
+        savedJobsCustomList.clear()
+        prefs.edit().remove("saved_job_ids").apply()
+    }
+
     init {
+        val storedSavedIds = prefs.getStringSet("saved_job_ids", emptySet()) ?: emptySet()
+        savedJobIds.addAll(storedSavedIds)
         fetchDashboardData()
     }
 

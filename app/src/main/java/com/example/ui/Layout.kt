@@ -31,6 +31,7 @@ import com.example.ui.screens.RegionDetailScreen
 import com.example.ui.screens.RegionsScreen
 import com.example.ui.screens.ReportDetailScreen
 import com.example.ui.screens.ReportsScreen
+import com.example.ui.screens.SavedJobsScreen
 import com.example.ui.theme.BgDeep
 
 @Composable
@@ -65,6 +66,7 @@ fun JobsReportLayout(viewModel: AppViewModel) {
                         NavRoute.COMPANIES -> CompaniesScreen(viewModel = viewModel)
                         NavRoute.REGIONS -> RegionsScreen(viewModel = viewModel)
                         NavRoute.ALL_JOBS -> JobsListScreen(viewModel = viewModel)
+                        NavRoute.SAVED_JOBS -> SavedJobsScreen(viewModel = viewModel)
                         NavRoute.JOB_REPORTS -> ReportsScreen(viewModel = viewModel)
                         NavRoute.ADMIN_STUDIO -> AdminStudioScreen(viewModel = viewModel)
                         NavRoute.JOB_DETAIL -> JobDetailScreen(viewModel = viewModel)

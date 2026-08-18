@@ -18,12 +18,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.WorkHistory
 import androidx.compose.material.icons.filled.Business
@@ -106,6 +108,16 @@ fun MobileNavDrawer(
                     iconColor = LightBlue,
                     isSelected = viewModel.currentRoute == NavRoute.ALL_JOBS,
                     onClick = { viewModel.navigateTo(NavRoute.ALL_JOBS) }
+                )
+
+                NavItemRow(
+                    title = "Saved Jobs",
+                    icon = Icons.Default.Bookmark,
+                    iconColor = AmberYellow,
+                    isSelected = viewModel.currentRoute == NavRoute.SAVED_JOBS,
+                    badge = if (viewModel.savedJobIds.isNotEmpty()) "${viewModel.savedJobIds.size}" else null,
+                    badgeColor = AmberYellow,
+                    onClick = { viewModel.navigateTo(NavRoute.SAVED_JOBS) }
                 )
 
                 NavItemRow(
@@ -212,6 +224,8 @@ private fun NavItemRow(
     icon: ImageVector,
     iconColor: Color,
     isSelected: Boolean,
+    badge: String? = null,
+    badgeColor: Color = AmberYellow,
     onClick: () -> Unit
 ) {
     Row(
@@ -239,7 +253,25 @@ private fun NavItemRow(
             text = title,
             color = if (isSelected) Color.White else TextPrimary,
             fontSize = 13.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f)
         )
+        if (!badge.isNullOrBlank()) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(badgeColor.copy(alpha = 0.2f))
+                    .border(1.dp, badgeColor.copy(alpha = 0.4f), CircleShape)
+                    .padding(horizontal = 8.dp, vertical = 2.dp)
+            ) {
+                Text(
+                    text = badge,
+                    color = badgeColor,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+        }
     }
 }

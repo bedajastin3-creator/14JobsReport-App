@@ -25,6 +25,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.ChevronLeft
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.FilterList
@@ -34,6 +36,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -56,12 +59,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import com.example.data.JobOpportunity
 import com.example.state.AppViewModel
 import com.example.state.NavRoute
 import com.example.ui.components.JobsPagination
+import com.example.ui.theme.AmberYellow
 import com.example.ui.theme.BgCard
 import com.example.ui.theme.BgDeep
 import com.example.ui.theme.BorderWhite10
@@ -80,22 +85,27 @@ const val JOBS_PER_PAGE = 15
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun JobsListScreen(viewModel: AppViewModel) {
+    val context = LocalContext.current
     var searchQuery by remember { mutableStateOf("") }
     var selectedRole by remember { mutableStateOf("All") }
     var currentPage by remember { mutableIntStateOf(1) }
 
-    // Derive roles list from available jobs
-    val allRoles = remember(viewModel.activeJobs) {
-        listOf("All") + viewModel.activeJobs.mapNotNull { it.role }.filter { it.isNotBlank() }.distinct()
+    val isSavedSelected = selectedRole.startsWith("Saved", ignoreCase = true)
+    val baseJobs = if (isSavedSelected) viewModel.savedJobs else viewModel.activeJobs
+
+    // Derive roles list from available jobs including Saved filter
+    val allRoles = remember(viewModel.activeJobs, viewModel.savedJobIds.size) {
+        val savedLabel = if (viewModel.savedJobIds.isNotEmpty()) "Saved (${viewModel.savedJobIds.size})" else "Saved"
+        listOf("All", savedLabel) + viewModel.activeJobs.mapNotNull { it.role }.filter { it.isNotBlank() }.distinct()
     }
 
     // Filter jobs based on search query, selected role, and selected country
-    val filteredJobs = viewModel.activeJobs.filter { job ->
+    val filteredJobs = baseJobs.filter { job ->
         val matchesSearch = searchQuery.isBlank() ||
                 job.title.contains(searchQuery, ignoreCase = true) ||
                 job.company.contains(searchQuery, ignoreCase = true) ||
                 (job.location?.contains(searchQuery, ignoreCase = true) == true)
-        val matchesRole = selectedRole == "All" || job.role.equals(selectedRole, ignoreCase = true)
+        val matchesRole = isSavedSelected || selectedRole == "All" || job.role.equals(selectedRole, ignoreCase = true)
         val matchesCountry = viewModel.selectedCountry.equals("Worldwide", ignoreCase = true) ||
                 viewModel.selectedCountry.isBlank() ||
                 (job.country?.contains(viewModel.selectedCountry, ignoreCase = true) == true) ||
@@ -389,9 +399,19 @@ fun JobsListScreen(viewModel: AppViewModel) {
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 paginatedJobs.forEachIndexed { index, job ->
+                    val isJobSaved = viewModel.isJobSaved(job.id)
                     MarketJobCard(
                         job = job,
                         index = index,
+                        isSaved = isJobSaved,
+                        onToggleSave = {
+                            val nowSaved = viewModel.toggleSaveJob(job)
+                            Toast.makeText(
+                                context,
+                                if (nowSaved) "Job saved to your Saved Jobs list" else "Job removed from Saved Jobs",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
                         onClick = { viewModel.selectJob(job) }
                     )
                     if ((index + 1) % 3 == 0) {
@@ -523,6 +543,8 @@ private fun TelemetryStatCard(
 private fun MarketJobCard(
     job: JobOpportunity,
     index: Int,
+    isSaved: Boolean = false,
+    onToggleSave: () -> Unit = {},
     onClick: () -> Unit = {}
 ) {
     val isExpired = job.isJobExpired()
@@ -537,7 +559,7 @@ private fun MarketJobCard(
             .padding(16.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            // Header Row: Logo, Title, Role Tag & Time
+            // Header Row: Logo, Title, Role Tag, Time & Bookmark
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -661,6 +683,22 @@ private fun MarketJobCard(
                             )
                         }
                     }
+                }
+
+                // Bookmark icon button on card
+                IconButton(
+                    onClick = onToggleSave,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(if (isSaved) AmberYellow.copy(alpha = 0.15f) else BgDeep)
+                ) {
+                    Icon(
+                        imageVector = if (isSaved) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = if (isSaved) "Remove from Saved" else "Save Job",
+                        tint = if (isSaved) AmberYellow else TextMuted,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
 
