@@ -59,7 +59,7 @@ android {
       signingConfig = signingConfigs.getByName("release")
     }
     debug {
-}
+
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
